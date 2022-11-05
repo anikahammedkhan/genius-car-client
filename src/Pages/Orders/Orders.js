@@ -6,15 +6,53 @@ const Orders = () => {
     const { user } = useContext(AuthContext);
     const [orders, setOrders] = useState([]);
 
-    const url = `http://localhost:5000/orders?email=${user.email}`;
+    const url = `http://localhost:5000/orders?email=${user?.email}`;
 
     useEffect(() => {
         fetch(url)
             .then(res => res.json())
             .then(data => setOrders(data))
-    }, [user?.email])
+    }, [user?.email, url])
 
-    console.log(orders);
+    const handleDelete = (id) => {
+        const proceed = window.confirm('Are you sure, you want to delete this order?');
+        if (proceed) {
+            fetch(`http://localhost:5000/orders/${id}`, {
+                method: 'DELETE'
+            })
+                .then(res => res.json())
+                .then(data => {
+                    if (data) {
+                        alert('Order Deleted Successfully');
+                        const remainingOrders = orders.filter(order => order._id !== id);
+                        setOrders(remainingOrders);
+                    }
+                })
+        }
+    }
+
+    const handleStatusChange = (id) => {
+        fetch(`http://localhost:5000/orders/${id}`, {
+            method: 'PATCH',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ status: "Approved" })
+        })
+            .then(res => res.json())
+            .then(data => {
+                if (data.modifiedCount > 0) {
+                    alert('Status Updated Successfully');
+                    const remainingOrders = orders.filter(order => order._id !== id);
+                    const approving = orders.find(order => order._id === id);
+                    approving.status = "Approved";
+                    const updatedOrders = [...remainingOrders, approving];
+                    setOrders(updatedOrders);
+                }
+            })
+    }
+
+
 
     return (
         <div>
@@ -24,19 +62,17 @@ const Orders = () => {
                     <thead>
                         <tr>
                             <th>
-                                <label>
-                                    <input type="checkbox" className="checkbox" />
-                                </label>
+                                Delete Order
                             </th>
                             <th>Name</th>
-                            <th>Job</th>
-                            <th>Favorite Color</th>
+                            <th>Order Title</th>
                             <th>Message</th>
+                            <th>Status</th>
                         </tr>
                     </thead>
                     <tbody>
                         {
-                            orders.map(order => <OrderRow key={order._id} order={order}></OrderRow>
+                            orders.map(order => <OrderRow key={order._id} order={order} handleDelete={handleDelete} handleStatusChange={handleStatusChange}></OrderRow>
                             )
                         }
                     </tbody>
