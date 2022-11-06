@@ -14,18 +14,21 @@ const Orders = () => {
         })
             .then(res => {
                 if (res.status === 401 || res.status === 403) {
-                    signOut();
+                    return signOut();
                 }
                 return res.json()
             })
             .then(data => setOrders(data))
-    }, [user?.email])
+    }, [user?.email, signOut])
 
     const handleDelete = (id) => {
         const proceed = window.confirm('Are you sure, you want to delete this order?');
         if (proceed) {
             fetch(`http://localhost:5000/orders/${id}`, {
-                method: 'DELETE'
+                method: 'DELETE',
+                headers: {
+                    authorization: `Bearer ${localStorage.getItem('token')}`
+                }
             })
                 .then(res => res.json())
                 .then(data => {
@@ -42,7 +45,8 @@ const Orders = () => {
         fetch(`http://localhost:5000/orders/${id}`, {
             method: 'PATCH',
             headers: {
-                'Content-Type': 'application/json'
+                'Content-Type': 'application/json',
+                authorization: `Bearer ${localStorage.getItem('token')}`
             },
             body: JSON.stringify({ status: "Approved" })
         })
