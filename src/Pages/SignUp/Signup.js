@@ -14,6 +14,7 @@ const Signup = () => {
         if (password === confirmPassword) {
             createUser(email, password)
                 .then((result) => {
+                    form.reset();
                     console.log(result);
                 })
                 .catch((error) => {
